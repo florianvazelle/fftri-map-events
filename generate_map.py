@@ -186,10 +186,19 @@ def generate_map(marker_positions: list[Event], output_file="build/index.html"):
         """,
     ).add_to(m)
 
+    fg_by_date = {}
+
     for event in marker_positions:
+        date = event.datetime.strftime("%B %Y")
+        if date not in fg_by_date:
+            fg = folium.FeatureGroup(name=date, show=True).add_to(m)
+            fg_by_date[date] = fg
+
         html = f'<a href="{event.link}" target="_blank"><b>{event.title}</b></a><br>Date: {event.datetime.strftime("%B %d, %Y")}'
         popup = folium.Popup(folium.IFrame(html, width=200, height=100), max_width=200)
-        folium.Marker([event.lat, event.lon], popup=popup).add_to(m)
+        folium.Marker([event.lat, event.lon], popup=popup).add_to(fg_by_date[date])
+
+    folium.LayerControl().add_to(m)
 
     m.save(output_file)
     console.log(f":world_map: [bold green]Map saved to:[/bold green] {output_file}")
@@ -204,6 +213,6 @@ if __name__ == "__main__":
     )
     url = "https://fftri.t2area.com/calendrier.html"  # Replace with your actual URL
     positions = []
-    for i in range(0, 200, 10):
+    for i in range(0, 500, 10):
         positions += extract_marker_positions(url + f"?limitstart={i}")
     generate_map(positions)
